@@ -4,3 +4,5 @@ ipykernel
 seaborn
 matplotlib
 yfinance
+statsmodels
+ccxt
