@@ -39,18 +39,9 @@ def adx(df: pd.DataFrame, smoothing_bars: int = 14):
 
     return pd.DataFrame({'plus_di': plus_di, 'minus_di': minus_di, 'adx': wilder(dx, n)})
 
-def moving_average(df : pd.DataFrame , window : int):
-    
-   return df.close.rolling(window).mean()
-
-def exponential_ma(df: pd.date_range , window : int):
-    
-    return df.close.ewm(span = window , adjust = False).mean()
-
 def hurst_exponent(df, max_lag=300):
     lags = range(2, max_lag)
     tau = [np.sqrt(np.std(np.subtract(df[lag:], df[:-lag]))) for lag in lags]
-    # Linear fit on log-log scale to get slope
     poly = np.polyfit(np.log(lags), np.log(tau), 1)
     return poly[0] * 2.0
 

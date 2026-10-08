@@ -1,6 +1,7 @@
 import ccxt
 import pandas as pd
 import time
+import os
 
 def fetch_ohlcv_full(symbol, timeframe="4h", since="2021-01-01T00:00:00Z", until="2026-01-01T00:00:00Z"):
     ex = ccxt.binance({"enableRateLimit": True})
@@ -18,6 +19,15 @@ def fetch_ohlcv_full(symbol, timeframe="4h", since="2021-01-01T00:00:00Z", until
     df["timestamp"] = pd.to_datetime(df["timestamp"], unit="ms", utc=True)
     df = df.drop_duplicates("timestamp").set_index("timestamp")
     return df[df.index < pd.to_datetime(until, utc=True)]
+
+def load_ohlcv(symbol, timeframe="4h", since="2021-01-01T00:00:00Z", until="2026-01-01T00:00:00Z", refresh=False):
+    os.makedirs("data", exist_ok=True)
+    path = f"data/{symbol.replace('/', '_')}_{timeframe}_{since[:10]}_{until[:10]}.parquet"
+    if os.path.exists(path) and not refresh:
+        return pd.read_parquet(path)
+    df = fetch_ohlcv_full(symbol, timeframe, since, until)
+    df.to_parquet(path)
+    return df
 
 
 def clean_and_validate_crypto(df, ticker_label="BTC", freq="4h"):
@@ -37,15 +47,12 @@ def clean_and_validate_crypto(df, ticker_label="BTC", freq="4h"):
     df = df.sort_index()
 
 
-    # 5. Check Zero-Volume Bars
     zero_vol_mask = df["volume"] == 0
     zero_vol_count = zero_vol_mask.sum()
 
 
-    # 6. Spike Detection via Rolling Z-Score (1-Month Window)
     returns = df["close"].pct_change()
 
-    # Logical high/low anomalies (e.g. low > high or close outside high/low range)
     invalid_ohlc = df[(df["low"] > df["high"]) | (df["close"] > df["high"]) | (df["close"] < df["low"])]
 
     # Display Summary Report

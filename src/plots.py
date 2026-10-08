@@ -3,7 +3,6 @@ import pandas as pd
 
 
 def plot_price_volume(btc, eth):
-    # Create 2x2 figure grid
     fig, axes = plt.subplots(2, 2, figsize=(14, 8), sharex=True)
 
     # 1. BTC Price
@@ -48,19 +47,16 @@ def plot_regimes(btc, eth):
 
     fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(14, 10), sharex=True)
 
-    # --- Plot BTC Price & Volume ---
     ax1.plot(btc.index, btc['close'], color='#F7931A', linewidth=1.5, label='BTC close Price')
     ax1.set_title('Bitcoin (BTC-USD): Market Regimes (2021 - 2025)')
     ax1.set_ylabel('Price ($)')
     ax1.grid(True, linestyle='--', alpha=0.4)
 
-    # --- Plot ETH Price & Volume ---
     ax2.plot(eth.index, eth['close'], color='#627EEA', linewidth=1.5, label='ETH close Price')
     ax2.set_title('Ethereum (ETH-USD): Market Regimes (2021 - 2025)')
     ax2.set_ylabel('Price ($)')
     ax2.grid(True, linestyle='--', alpha=0.4)
 
-    # --- Add Shaded Regimes to both subplots ---
     for ax in [ax1, ax2]:
         for regime in regimes:
             ax.axvspan(
@@ -71,7 +67,6 @@ def plot_regimes(btc, eth):
                 label=regime['label']
             )
 
-    # Remove duplicate labels in legend
     handles1, labels1 = ax1.get_legend_handles_labels()
     by_label1 = dict(zip(labels1, handles1))
     ax1.legend(by_label1.values(), by_label1.keys(), loc='upper left')
@@ -82,3 +77,13 @@ def plot_regimes(btc, eth):
 
     plt.tight_layout()
     plt.show()
+
+def plot_equity(results: dict, strategies: list, assets, title: str = "{} equity curve", figsize=(10, 4)):
+    for name in assets:
+        fig, ax = plt.subplots(figsize=figsize)
+        for strategy in strategies:
+            ax.plot(results[(strategy, name)]["equity"], label=strategy)
+        ax.set_title(title.format(name))
+        ax.grid(True)
+        ax.legend()
+        plt.show()
